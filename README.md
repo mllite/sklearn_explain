@@ -1,9 +1,36 @@
 # sklearn_explain
 
+This is a tool that gives model individual score explanation for an already trained scikit-learn model.
+
 Model explanation provides the ability to interpret the effect of the predictors on the composition of an individual score. These predictors can then be ranked according to their contribution in the final score (leading to a positive or negative decision).
 
-Model explanation has always been used in credit risk applications in presence of regulatory settings . The credit company is expected to give the customer the main (top n) reasons why the credit application was rejected (also known as reason codes).
+# Demo
+```Python
+from sklearn import datasets
+import pandas as pd
+import sklearn_explain.explainer as expl
 
-Model explanation was also recently introduced by the European Union’s new General Data Protection Regulation (GDPR, https://arxiv.org/pdf/1606.08813.pdf) to add the possibility to control the increasing use of machine learning algorithms in routine decision-making processes.
+ds = datasets.load_breast_cancer();
+from sklearn.ensemble import RandomForestClassifier
+clf = RandomForestClassifier(n_estimators=120, random_state = 1960)
 
-    The law will also effectively create a “right to explanation,” whereby a user can ask for an explanation of an algorithmic decision that was made about them.
+clf.fit(ds.data , ds.target)
+
+lExplainer = expl.cModelScoreExplainer(clf)
+lExplainer.fit(ds.data)
+df_rc = lExplainer.explain(ds.data)
+
+print(df_rc.head())
+```
+
+# Installation
+
+
+
+sklearn_explain has been developed, tested and used on a python 3.5 version. 
+
+The following commands install sklearn_explain and all its dependencies:
+
+	pip install scipy pandas sklearn matplotlib
+	pip install --upgrade git+git://github.com/antoinecarme/sklearn_explain.git
+    
