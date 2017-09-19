@@ -1,4 +1,4 @@
-# sklearn_model_explanation
+# sklearn_explain
 
 Model explanation provides the ability to interpret the effect of the predictors on the composition of an individual score. These predictors can then be ranked according to their contribution in the final score (leading to a positive or negative decision).
 
