@@ -4,6 +4,8 @@ This is a tool that gives model individual score explanation for an already trai
 
 Model explanation provides the ability to interpret the effect of the predictors on the composition of an individual score. These predictors can then be ranked according to their contribution in the final score (leading to a positive or negative decision).
 
+This is a work in progress. The set of features is evolving. Your feature requests, issues, comments, help, hints are very welcome.
+
 # Demo
 ```Python
 from sklearn import datasets
