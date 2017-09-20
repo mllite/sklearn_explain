@@ -1,4 +1,4 @@
-from reason_codes import explain_class as expl
+from sklearn_explain.reason_codes import explain_class as expl
 
 # This is a model explainer designed for classifiers and regressors with continous inputs.
 # Support for multiclass models and categorical inputs is coming.
