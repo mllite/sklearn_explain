@@ -7,6 +7,11 @@ Model explanation provides the ability to interpret the effect of the predictors
 This is a work in progress. The set of features is evolving. Your feature requests, issues, comments, help, hints are very welcome.
 
 # Demo
+-----
+[also availabe as a jupyter notebook](docs/sample_demo.ipynb)
+
+
+
 ```Python
 from sklearn import datasets
 import pandas as pd
