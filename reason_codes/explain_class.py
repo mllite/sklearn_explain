@@ -49,8 +49,9 @@ class cClassificationModel_ScoreExplainer:
         return quantiles
 
     def get_bin_index(self, x, quantiles):
-        return min(quantiles.keys(), key=lambda y:abs(float(quantiles[y])-x))
-
+        res= min(quantiles.keys(), key=lambda y:float(quantiles[y]-x))
+        # print("get_bin_index" , x , quantiles , res)
+        return res
 
     def get_feature_names(self):
         return self.mFeatureNames_
@@ -63,7 +64,7 @@ class cClassificationModel_ScoreExplainer:
         self.mScoreBinInterpolators = {}
         self.mScoreBinInterpolationCoefficients = {}
         self.mScoreBinInterpolationIntercepts = {}
-        for b in range(len(self.mScoreQuantiles)):
+        for b in self.mScoreQuantiles.keys():
             bin_regression = Ridge(random_state = 1960)
             bin_indices = (df['BinnedScore'] == b)
             # print("PER_BIN_INDICES" , b , bin_indices)
@@ -79,7 +80,8 @@ class cClassificationModel_ScoreExplainer:
                 self.mScoreBinInterpolationIntercepts[b] = bin_regression.intercept_
                 predicted = bin_regression.predict(bin_X)
                 lInterpolted_Score[bin_indices] = predicted
-        df['Score_interp'] = lInterpolted_Score 
+        df['Score_interp'] = lInterpolted_Score
+        # print("SIGNIFICANT_BINS" , self.mScoreBinInterpolationCoefficients.keys())
         return df
 
     def create_score_stats(self, X):
