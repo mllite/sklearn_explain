@@ -39,7 +39,11 @@ class cClassificationModel_ScoreExplainer:
         if(hasattr(self.mClassifier , 'decision_function')):
             if(self.mDebug):
                 print("USING_DECISION_FUNCTION_AS_SCORE")
-            return self.mClassifier.decision_function(X)[:,0]
+            lDecision = self.mClassifier.decision_function(X)
+            if(len(lDecision.shape) == 1):
+                # binary classifier : RidgeClassifier and SGDClassifier
+                return lDecision
+            return lDecision[:,0]
         return None
 
     def computeQuantiles(self, col , bin_count):
