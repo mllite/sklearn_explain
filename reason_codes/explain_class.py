@@ -5,9 +5,9 @@ class cClassificationModel_ScoreExplainer:
 
     def __init__(self , clf):
         self.mFeatureNames = None
-        self.mScoreBins = 20
+        self.mScoreBins = 4
         self.mFeatureBins = 10
-        self.mMaxReasons = 20
+        self.mMaxReasons = 10
         self.mScoreQuantiles = None
         self.mFeatureQuantiles = None
         self.mScoreBinInterpolators = None
@@ -35,7 +35,10 @@ class cClassificationModel_ScoreExplainer:
         if(hasattr(self.mClassifier , 'predict_proba')):
             if(self.mDebug):
                 print("USING_PROBABILITY_AS_SCORE")
-            return self.mClassifier.predict_proba(X)[:,0]
+            lProba = self.mClassifier.predict_proba(X)[:,1]
+            lProba = lProba.clip(0.00001 , 0.99999)
+            lOdds = lProba / (1.0 - lProba)
+            return np.log(lOdds)
         if(hasattr(self.mClassifier , 'decision_function')):
             if(self.mDebug):
                 print("USING_DECISION_FUNCTION_AS_SCORE")
@@ -47,13 +50,16 @@ class cClassificationModel_ScoreExplainer:
         return None
 
     def computeQuantiles(self, col , bin_count):
-        q = pd.Series(range(0,bin_count)).apply(lambda x : col.quantile(x/bin_count))
+        lBinCount = bin_count
+        lBinCount = lBinCount if(lBinCount < (col.shape[0] / 30)) else int(col.shape[0] / 30)
+            
+        q = pd.Series(range(0,bin_count)).apply(lambda x : col.quantile(x/lBinCount))
         quantiles = q.to_dict()
         # print("QUANTILES" , col.name, quantiles)
         return quantiles
 
     def get_bin_index(self, x, quantiles):
-        res= min(quantiles.keys(), key=lambda y:float(quantiles[y]-x))
+        res= min(quantiles.keys(), key=lambda y:abs(float(quantiles[y]-x)))
         # print("get_bin_index" , x , quantiles , res)
         return res
 
