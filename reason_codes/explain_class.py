@@ -5,7 +5,7 @@ class cClassificationModel_ScoreExplainer:
 
     def __init__(self , clf):
         self.mFeatureNames = None
-        self.mScoreBins = 4
+        self.mScoreBins = 10
         self.mFeatureBins = 10
         self.mMaxReasons = 10
         self.mScoreQuantiles = None
@@ -53,7 +53,7 @@ class cClassificationModel_ScoreExplainer:
         lBinCount = bin_count
         lBinCount = lBinCount if(lBinCount < (col.shape[0] / 30)) else int(col.shape[0] / 30)
             
-        q = pd.Series(range(0,bin_count)).apply(lambda x : col.quantile(x/lBinCount))
+        q = pd.Series(range(0,lBinCount)).apply(lambda x : col.quantile(x/lBinCount))
         quantiles = q.to_dict()
         # print("QUANTILES" , col.name, quantiles)
         return quantiles
