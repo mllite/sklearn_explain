@@ -217,7 +217,8 @@ class cClassificationModel_ScoreExplainer:
         df_rc = df_rc[list(reversed(df_rc.columns))]
         df_rc = pd.concat([df , df_rc] , axis=1)
         for c in range(NC):
-            df_rc['reason_' + str(c+1)] = df_rc['reason_' + str(c+1)].apply(lambda x : lExplanations[x])
-            df_rc['deatiled_reason_' + str(c+1)] = df_rc['reason_' + str(c+1)].apply(lambda x : self.get_explanation_human_friendly(lExplanations[x] , [1 for c in lExplanations]))
+            lReason = df_rc['reason_' + str(c+1)]
+            df_rc['reason_ep' + str(c+1)] = lReason.apply(lambda x : lExplanations[x])
+            df_rc['detailed_reason_' + str(c+1)] = lReason.apply(lambda x : self.get_explanation_human_friendly(lExplanations[x] , [1 for c in lExplanations]))
         # print(df_rc.sample(6, random_state=1960))
         return df_rc
