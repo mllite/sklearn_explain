@@ -102,7 +102,7 @@ def test_class_dataset_and_model(ds_name, model_name):
 
     lExplainer = expl.cModelScoreExplainer(model)
     if(hasattr(ds , "feature_names")):
-        lExplainer.mFeatureNames= ds.feature_names
+        lExplainer.mSettings.mFeatureNames= ds.feature_names
     lExplainer.fit(X_train)
     df_rc = lExplainer.explain(X_test)
     
