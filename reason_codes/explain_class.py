@@ -106,18 +106,21 @@ class cClassificationModel_ScoreExplainer:
             
         return output
 
-    def get_explanation_human_friendly(self, explain , values):
+    def get_explanation_human_friendly(self, explain , row):
         data = self.mExplanationData[explain]
         output = []
         for (i, feat_i) in enumerate(data):
-            output_i = self.get_feature_explanation(feat_i , values[i])
+            output_i = self.get_feature_explanation(feat_i , row[feat_i + "_bin"])
             output.append(output_i)
         return output
 
     def get_all_feature_combinations(self):
         lFeatures = self.get_feature_names()
         import itertools
-        lcombinations = itertools.combinations(lFeatures , 2)
+        lOrder = 2
+        if(len(lFeatures) > 50):
+            lOrder = 1
+        lcombinations = itertools.combinations(lFeatures , lOrder)
         # print("COMBINATIONS" , [c for c in lcombinations])
         return lcombinations
 
@@ -217,8 +220,11 @@ class cClassificationModel_ScoreExplainer:
         df_rc = df_rc[list(reversed(df_rc.columns))]
         df_rc = pd.concat([df , df_rc] , axis=1)
         for c in range(NC):
-            lReason = df_rc['reason_' + str(c+1)]
-            df_rc['reason_ep' + str(c+1)] = lReason.apply(lambda x : lExplanations[x])
-            df_rc['detailed_reason_' + str(c+1)] = lReason.apply(lambda x : self.get_explanation_human_friendly(lExplanations[x] , [1 for c in lExplanations]))
+            name = 'reason_' + str(c+1)
+            lReason = df_rc[name]
+            df_rc[name] = lReason.apply(lambda x : lExplanations[x])
+            df_rc[name + "_idx"] = lReason
+            lambda_detail = lambda row : self.get_explanation_human_friendly(lExplanations[row[name + "_idx"]] , row)
+            df_rc['detailed_' + name] = df_rc.apply(lambda_detail, axis=1)
         # print(df_rc.sample(6, random_state=1960))
         return df_rc
