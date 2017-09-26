@@ -20,6 +20,7 @@ class cModelScoreExplainer:
 
     def fit(self, X):
         self.mImplemantation = expl.cClassificationModel_ScoreExplainer(self.mModel)
+        self.mImplemantation.mFeatureNames = self.mFeatureNames
         return self.mImplemantation.fit(X)
 
 
