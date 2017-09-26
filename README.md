@@ -23,6 +23,7 @@ clf = RandomForestClassifier(n_estimators=120, random_state = 1960)
 clf.fit(ds.data , ds.target)
 
 lExplainer = expl.cModelScoreExplainer(clf)
+lExplainer.mFeatureNames = ds.feature_names
 lExplainer.fit(ds.data)
 df_rc = lExplainer.explain(ds.data)
 
