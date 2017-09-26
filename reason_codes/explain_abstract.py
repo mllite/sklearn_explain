@@ -1,30 +1,37 @@
 import pandas as pd
 import numpy as np
 
-class cClassificationModel_ScoreExplainer:
+from . import settings as conf
 
-    def __init__(self , clf):
+class cAbstractScoreExplainer:
+
+    def __init__(self , clf, settings = None):
+        self.mClassifier = clf
+        if(settings is None):
+            self.mSettings = conf.cScoreExplainerConfig()
+        else:
+            self.mSettings = settings        
         self.mFeatureNames = None
-        self.mScoreBins = 5
-        self.mFeatureBins = 5
-        self.mMaxReasons = 5
+        self.clear_data()
+
+    def clear_data(self):
         self.mScoreQuantiles = None
         self.mFeatureQuantiles = None
         self.mScoreBinInterpolators = None
         self.mScoreBinInterpolationCoefficients = None
         self.mScoreBinInterpolationIntercepts = None
         self.mContribMeans = {}
-        self.mClassifier = clf
         self.mExplanations = []
         self.mExplanationData = {}
-        self.mDebug = True
+        
 
     # infer explanation data using the training dataset
     def fit(self, X):
-        if(self.mFeatureNames is None):
+        self.clear_data()
+        if(self.mSettings.mFeatureNames is None):
             self.mFeatureNames_ = ['Feature_' + str(col+1) for col in range(X.shape[1])]
         else:
-            self.mFeatureNames_ = self.mFeatureNames
+            self.mFeatureNames_ = self.mSettings.mFeatureNames
         self.create_score_stats(X)
         pass
 
@@ -34,22 +41,7 @@ class cClassificationModel_ScoreExplainer:
         return df
 
     def get_score(self, X):
-        if(hasattr(self.mClassifier , 'predict_proba')):
-            if(self.mDebug):
-                print("USING_PROBABILITY_AS_SCORE")
-            lProba = self.mClassifier.predict_proba(X)[:,1]
-            lProba = lProba.clip(0.00001 , 0.99999)
-            lOdds = lProba / (1.0 - lProba)
-            return np.log(lOdds)
-        if(hasattr(self.mClassifier , 'decision_function')):
-            if(self.mDebug):
-                print("USING_DECISION_FUNCTION_AS_SCORE")
-            lDecision = self.mClassifier.decision_function(X)
-            if(len(lDecision.shape) == 1):
-                # binary classifier : RidgeClassifier and SGDClassifier
-                return lDecision
-            return lDecision[:,0]
-        return None
+        assert(0)
 
     def computeQuantiles(self, col , bin_count):
         lBinCount = bin_count
@@ -117,7 +109,7 @@ class cClassificationModel_ScoreExplainer:
     def get_all_feature_combinations(self):
         lFeatures = self.get_feature_names()
         import itertools
-        lOrder = 2
+        lOrder = self.mSettings.mExplanationOrder
         if(len(lFeatures) > 50):
             lOrder = 1
         lcombinations = itertools.combinations(lFeatures , lOrder)
@@ -130,7 +122,7 @@ class cClassificationModel_ScoreExplainer:
 
         for col in lFeatures:
             if(self.mFeatureEncoding is None):
-                self.mFeatureQuantiles[col] = self.computeQuantiles(df[col] , self.mFeatureBins)       
+                self.mFeatureQuantiles[col] = self.computeQuantiles(df[col] , self.mSettings.mFeatureBins)       
             df[col + '_bin'] = df[col].apply(lambda x : self.get_bin_index(x , self.mFeatureQuantiles[col]))
 
 
@@ -152,7 +144,7 @@ class cClassificationModel_ScoreExplainer:
 
     def create_score_stats(self, X):
         lScore = pd.Series(self.get_score(X))
-        self.mScoreQuantiles = self.computeQuantiles(lScore , self.mScoreBins)
+        self.mScoreQuantiles = self.computeQuantiles(lScore , self.mSettings.mScoreBins)
         lBinnedScore = lScore.apply(lambda x : self.get_bin_index(x , self.mScoreQuantiles))
         
         self.mFeatureQuantiles = {}
@@ -214,7 +206,7 @@ class cClassificationModel_ScoreExplainer:
         df = self.compute_effects(df)
         lExplanations = self.get_explanations()
         reason_codes = np.argsort(df[[explain + '_Effect' for explain in lExplanations]].values, axis=1)
-        NC = min(len(self.mExplanations) , self.mMaxReasons)
+        NC = min(len(self.mExplanations) , self.mSettings.mMaxReasons)
         reason_codes = reason_codes[:,0:NC]
         df_rc = pd.DataFrame(reason_codes, columns=['reason_' + str(NC-c) for c in range(NC)])
         df_rc = df_rc[list(reversed(df_rc.columns))]
