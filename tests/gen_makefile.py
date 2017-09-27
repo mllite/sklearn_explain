@@ -1,7 +1,7 @@
 import os
 import glob
 
-subdirs = ["tests/protoyping"] +  glob.glob("tests/skl_datasets/*") +  glob.glob("tests/skl_datasets_reg/*") 
+subdirs = ["tests/protoyping"] +  glob.glob("tests/skl_datasets/*") +  glob.glob("tests/skl_datasets_reg/*") +  glob.glob("tests/issues/*") 
 
 
 all_target = "";
