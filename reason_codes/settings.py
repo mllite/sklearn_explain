@@ -9,6 +9,17 @@ class cScoreExplainerConfig:
         self.mFeatureBins = 5 # feature binning
         self.mMaxReasons = 5 # max number of explanations
         self.mExplanationOrder = 2 # max number of feature by explanation
+        self.mClasses = None
+        self.mMainClass = None
         self.mDebug = True
+
+    def get_class_index(self):
+        default_class_idx = -1
+        if(self.mMainClass is None):
+            return default_class_idx
+        if(self.mClasses is None):
+            return default_class_idx
+        return list(self.mClasses).index(self.mMainClass)
+    
 
 
