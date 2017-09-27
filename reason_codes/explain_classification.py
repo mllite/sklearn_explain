@@ -10,10 +10,11 @@ class cClassificationModel_ScoreExplainer(exp.cAbstractScoreExplainer):
         exp.cAbstractScoreExplainer.__init__(self, clf, settings);
 
     def get_score(self, X):
+        class_idx = self.mSettings.get_class_index()
         if(hasattr(self.mClassifier , 'predict_proba')):
             if(self.mSettings.mDebug):
                 print("USING_PROBABILITY_AS_SCORE")
-            lProba = self.mClassifier.predict_proba(X)[:,1]
+            lProba = self.mClassifier.predict_proba(X)[:,class_idx]
             lProba = lProba.clip(0.00001 , 0.99999)
             lOdds = lProba / (1.0 - lProba)
             return np.log(lOdds)
@@ -24,6 +25,6 @@ class cClassificationModel_ScoreExplainer(exp.cAbstractScoreExplainer):
             if(len(lDecision.shape) == 1):
                 # binary classifier : RidgeClassifier and SGDClassifier
                 return lDecision
-            return lDecision[:,0]
+            return lDecision[:,class_idx]
         return None
 
