@@ -3,6 +3,7 @@ import numpy as np
 
 from . import settings as conf
 from . import explain_classification as exp_class
+from . import explain_regression as exp_reg
 
 class cScoreExplainerFactory:
 
@@ -14,5 +15,5 @@ class cScoreExplainerFactory:
             return exp_class.cClassificationModel_ScoreExplainer(clf , settings)
         if(hasattr(clf , 'decision_function')):
             return exp_class.cClassificationModel_ScoreExplainer(clf , settings)
-        return None
+        return exp_reg.cRegressionModel_ScoreExplainer(clf , settings)
 
