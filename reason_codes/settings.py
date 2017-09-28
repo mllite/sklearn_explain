@@ -5,6 +5,7 @@ class cScoreExplainerConfig:
 
     def __init__(self):
         self.mFeatureNames = None
+        self.mCategoricalFeatureNames = None
         self.mScoreBins = 5 # score binning
         self.mFeatureBins = 5 # feature binning
         self.mMaxReasons = 5 # max number of explanations
@@ -23,3 +24,7 @@ class cScoreExplainerConfig:
     
 
 
+    def is_categorical(self, feature_name):
+        if(feature_name in self.mCategoricalFeatureNames):
+            return True
+        return False

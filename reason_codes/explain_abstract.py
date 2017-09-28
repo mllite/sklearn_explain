@@ -23,7 +23,7 @@ class cAbstractScoreExplainer:
         self.mContribMeans = {}
         self.mExplanations = []
         self.mExplanationData = {}
-        
+        self.mCategories = {}
 
     # infer explanation data using the training dataset
     def fit(self, X):
@@ -51,6 +51,11 @@ class cAbstractScoreExplainer:
         quantiles = q.to_dict()
         # print("QUANTILES" , col.name, quantiles)
         return quantiles
+
+    def computeCatgeories(self, col):
+        categories = np.unique(col)
+        # print("QUANTILES" , col.name, quantiles)
+        return categories
 
     def get_bin_index(self, x, quantiles):
         res= min(quantiles.keys(), key=lambda y:abs(float(quantiles[y]-x)))
@@ -87,6 +92,10 @@ class cAbstractScoreExplainer:
         # print("SIGNIFICANT_BINS" , self.mScoreBinInterpolationCoefficients.keys())
         return df
 
+    def get_feature_explanation_categorical(self, feat , value):
+        output = "('" + feat + "' = " + str(value) + ")"
+        return output
+
     def get_feature_explanation(self, feat , value):
         # value is a bin index (for the moment)
         q = self.mFeatureQuantiles[feat][value]
@@ -102,7 +111,10 @@ class cAbstractScoreExplainer:
         data = self.mExplanationData[explain]
         output = []
         for (i, feat_i) in enumerate(data):
-            output_i = self.get_feature_explanation(feat_i , row[feat_i + "_bin"])
+            if(self.mSettings.is_categorical(feat_i)):
+                output_i = self.get_feature_explanation_categorical(feat_i , row[feat_i + "_bin"])
+            else:
+                output_i = self.get_feature_explanation(feat_i , row[feat_i + "_bin"])
             output.append(output_i)
         return output
 
@@ -121,9 +133,15 @@ class cAbstractScoreExplainer:
         lFeatures = self.get_feature_names()
 
         for col in lFeatures:
-            if(self.mFeatureEncoding is None):
-                self.mFeatureQuantiles[col] = self.computeQuantiles(df[col] , self.mSettings.mFeatureBins)       
-            df[col + '_bin'] = df[col].apply(lambda x : self.get_bin_index(x , self.mFeatureQuantiles[col]))
+            if(self.mSettings.is_categorical(col)):
+                if(self.mFeatureEncoding is None):
+                    self.mCategories[col] = self.computeQuantiles(df[col] , self.mSettings.mFeatureBins)       
+                df[col + '_bin'] = df[col]
+                pass
+            else:                
+                if(self.mFeatureEncoding is None):
+                    self.mFeatureQuantiles[col] = self.computeQuantiles(df[col] , self.mSettings.mFeatureBins)       
+                df[col + '_bin'] = df[col].apply(lambda x : self.get_bin_index(x , self.mFeatureQuantiles[col]))
 
 
         combinations = self.get_all_feature_combinations()
