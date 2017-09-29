@@ -7,6 +7,10 @@ This is an experimental tool that gives model individual score explanation for a
 
 Model explanation provides the ability to interpret the effect of the predictors on the composition of an individual score. These predictors can then be ranked according to their contribution in the final score (leading to a positive or negative decision).
 
+sklearn_explain is developed, tested and benchmarked using a python 3.x version.
+
+sklearn_explain is distributed under the 3-Clause BSD license.
+
 **This is a work in progress**. The set of features is evolving. Your feature requests, issues, comments, help, hints are very welcome.
 
 # Demo
