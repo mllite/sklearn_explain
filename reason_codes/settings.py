@@ -25,6 +25,6 @@ class cScoreExplainerConfig:
 
 
     def is_categorical(self, feature_name):
-        if(feature_name in self.mCategoricalFeatureNames):
+        if(self.mCategoricalFeatureNames is not None and feature_name in self.mCategoricalFeatureNames):
             return True
         return False
