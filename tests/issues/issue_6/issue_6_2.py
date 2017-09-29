@@ -13,7 +13,7 @@ lExplainer.mSettings.mFeatureNames = ds.feature_names
 lExplainer.mSettings.mScoreBins = 5
 lExplainer.mSettings.mFeatureBins = 5
 lExplainer.mSettings.mMaxReasons = 4
-lExplainer.mSettings.mExplanationOrder = 4
+lExplainer.mSettings.mExplanationOrder = 3
 lExplainer.fit(ds.data)
 df_rc = lExplainer.explain(ds.data)
 
