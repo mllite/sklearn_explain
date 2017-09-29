@@ -11,10 +11,10 @@ class cAbstractScoreExplainer:
             self.mSettings = conf.cScoreExplainerConfig()
         else:
             self.mSettings = settings        
-        self.mFeatureNames = None
         self.clear_data()
 
     def clear_data(self):
+        self.mUsedFeatureNames = None
         self.mScoreQuantiles = None
         self.mFeatureQuantiles = None
         self.mScoreBinInterpolators = None
@@ -42,6 +42,33 @@ class cAbstractScoreExplainer:
 
     def get_score(self, X):
         assert(0)
+
+    def get_used_features(self, X):
+        eps = 1e-10
+        used_indices = []
+        non_used_indices = []
+        full_score = self.get_score(X)
+        (NR , NC) = X.shape
+        is_constant = np.abs(np.min(full_score) - np.max(full_score)) < eps
+        print("CONST_SCORE_DETECTIOM", np.min(full_score), np.max(full_score) , is_constant)
+        for col_idx in range(NC):
+            # delete column i , put max + 1 everywhere (to be sure to change all the values)
+            new_col = np.full((NR , 1) , np.max(X[:, col_idx]) + 1)
+            X_without_col_idx = np.concatenate((X[:, 0:col_idx] , new_col , X[:, col_idx+1:]) , axis=1)
+            partial_score = self.get_score(X_without_col_idx)
+            # did the score change ?
+            distance = np.linalg.norm(full_score - partial_score)
+            if(distance > eps):
+                used_indices.append(col_idx)
+            else:
+                non_used_indices.append(col_idx)
+        if(is_constant):
+            used_indices = [non_used_indices[0]]
+            non_used_indices = non_used_indices[1:]
+        lFeatures = self.get_feature_names()
+        print("NON_USED_FEATURES" , [lFeatures[col_idx] for col_idx in  non_used_indices])
+        print("USED_FEATURES" , [lFeatures[col_idx] for col_idx in  used_indices])
+        return used_indices
 
     def computeQuantiles(self, col , bin_count):
         lBinCount = bin_count
@@ -119,18 +146,20 @@ class cAbstractScoreExplainer:
         return output
 
     def get_all_feature_combinations(self):
-        lFeatures = self.get_feature_names()
+        lFeatures = self.mUsedFeatureNames
         import itertools
         lOrder = self.mSettings.mExplanationOrder
         if(len(lFeatures) > 50):
             lOrder = 1
+        if(len(lFeatures) < lOrder):
+            lOrder = len(lFeatures)
         lcombinations = itertools.combinations(lFeatures , lOrder)
         # print("COMBINATIONS" , [c for c in lcombinations])
         return lcombinations
 
     def generate_explanations(self, df):
         lFeatureEncoding = {}
-        lFeatures = self.get_feature_names()
+        lFeatures = self.mUsedFeatureNames
 
         for col in lFeatures:
             if(self.mSettings.is_categorical(col)):
@@ -172,6 +201,8 @@ class cAbstractScoreExplainer:
         df['Score'] = lScore
         df['BinnedScore'] = lBinnedScore
 
+        lUsedFeatures_Indices = self.get_used_features(X)
+        self.mUsedFeatureNames = [lFeatures[idx] for idx in lUsedFeatures_Indices]
         self.generate_explanations(df);
         df = self.computeScoreInterpolators(df)
         df = self.estimate_effects(df)
