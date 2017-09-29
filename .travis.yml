@@ -13,5 +13,5 @@ script:
     - python ./tests/display_version_info.py
     - python ./tests/sample.py
     - python ./tests/sample_reg.py
-    - make PYTHON=python -f tests/Makefile all
+    - make PYTHON=python -f tests/Makefile build-test
 
