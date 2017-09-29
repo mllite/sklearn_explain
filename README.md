@@ -1,3 +1,6 @@
+
+[![Build Status](https://travis-ci.org/antoinecarme/sklearn_explain.svg?branch=master)](https://travis-ci.org/antoinecarme/sklearn_explain)
+
 # sklearn_explain
 
 This is an experimental tool that gives model individual score explanation for an already trained scikit-learn model.
