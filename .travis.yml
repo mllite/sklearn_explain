@@ -1,0 +1,17 @@
+language: python
+python:
+    - 3.5
+
+before_install:
+  
+
+install: 
+    pip install scipy pandas sklearn xgboost lightgbm
+
+script: 
+    - mkdir -p logs
+    - python ./tests/display_version_info.py
+    - python ./tests/sample.py
+    - python ./tests/sample_reg.py
+    - make PYTHON=python -f tests/Makefile all
+
