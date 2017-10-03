@@ -99,6 +99,7 @@ def test_reg_dataset_and_model(ds_name, model_name):
     lExplainer = expl.cModelScoreExplainer(model)
     if(hasattr(ds , "feature_names")):
         lExplainer.mSettings.mFeatureNames= ds.feature_names
+    #lExplainer.mSettings.mExplanationOrder = 1
     lExplainer.fit(X_train)
     df_rc = lExplainer.explain(X_test)
     
@@ -108,5 +109,4 @@ def test_reg_dataset_and_model(ds_name, model_name):
     print(df_rc[[col for col in df_rc.columns if col.startswith('reason_')]].describe())
     print(df_rc.sample(6, random_state=1960))
 
-
-# test_class_dataset_and_model("BinaryClass_10" , "RandomForestClassifier_6")
+    return lExplainer
