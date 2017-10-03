@@ -74,7 +74,7 @@ class cAbstractScoreExplainer:
         lBinCount = bin_count
         lBinCount = lBinCount if(lBinCount < (col.shape[0] / 30)) else int(col.shape[0] / 30)
             
-        q = pd.Series(range(0,lBinCount)).apply(lambda x : col.quantile(x/lBinCount))
+        q = pd.Series(range(0,lBinCount)).apply(lambda x : col.quantile((x+1)/lBinCount))
         quantiles = q.to_dict()
         # print("QUANTILES" , col.name, quantiles)
         return quantiles
@@ -85,7 +85,8 @@ class cAbstractScoreExplainer:
         return categories
 
     def get_bin_index(self, x, quantiles):
-        res= min(quantiles.keys(), key=lambda y:abs(float(quantiles[y]-x)))
+        qs = [k for k in quantiles.keys() if quantiles[k] >= x]
+        res= min(qs) if (len(qs) > 0) else 0
         # print("get_bin_index" , x , quantiles , res)
         return res
 
@@ -103,7 +104,7 @@ class cAbstractScoreExplainer:
         self.mScoreBinInterpolationCoefficients = {}
         self.mScoreBinInterpolationIntercepts = {}
         for b in self.mScoreQuantiles.keys():
-            bin_regression = Ridge(fit_intercept=False, random_state = 1960)
+            bin_regression = Ridge(fit_intercept=False, solver='svd')
             bin_indices = (df['BinnedScore'] == b)
             # print("PER_BIN_INDICES" , b , bin_indices)
             bin_data = df[bin_indices]
