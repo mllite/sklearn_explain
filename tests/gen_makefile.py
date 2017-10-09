@@ -1,7 +1,7 @@
 import os
 import glob
 
-subdirs = ["tests/protoyping"] +  glob.glob("tests/skl_datasets/*") +  glob.glob("tests/skl_datasets_reg/*") +  glob.glob("tests/issues/*") 
+subdirs = ["tests/protoyping"] +  glob.glob("tests/skl_datasets/*") +  glob.glob("tests/skl_datasets_reg/*") +  glob.glob("tests/issues/*") +  glob.glob("tests/score_card/*")
 
 build_tests = ['sample', 'tests_issues', 'iris', 'boston']
 
