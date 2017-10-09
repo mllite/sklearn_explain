@@ -73,10 +73,14 @@ class cAbstractScoreExplainer:
     def computeQuantiles(self, col , bin_count):
         lBinCount = bin_count
         lBinCount = lBinCount if(lBinCount < (col.shape[0] / 30)) else int(col.shape[0] / 30)
-            
-        q = pd.Series(range(0,lBinCount)).apply(lambda x : col.quantile((x+1)/lBinCount))
+        n_quantiles=[col.quantile(x/lBinCount) for x in range(1,lBinCount)]
+        unique_quantiles = sorted(list(set(n_quantiles)))
+        unique_quantiles = [-np.inf] + unique_quantiles
+        q = pd.Series(unique_quantiles)
         quantiles = q.to_dict()
-        # print("QUANTILES" , col.name, quantiles)
+        quantiles[0] = -np.inf
+        # print("QUANTILES_1" , col.name, bin_count, lBinCount, n_quantiles, unique_quantiles)
+        # print("QUANTILES_2" , col.name, quantiles)
         return quantiles
 
     def computeCatgeories(self, col):
@@ -85,8 +89,8 @@ class cAbstractScoreExplainer:
         return categories
 
     def get_bin_index(self, x, quantiles):
-        qs = [k for k in quantiles.keys() if quantiles[k] >= x]
-        res= min(qs) if (len(qs) > 0) else 0
+        qs = [k for k in quantiles.keys() if quantiles[k] <= x]
+        res= max(qs) # if (len(qs) > 0) else max(quantiles.keys())
         # print("get_bin_index" , x , quantiles , res)
         return res
 
@@ -96,6 +100,11 @@ class cAbstractScoreExplainer:
     def get_explanations(self):
         return self.mExplanations
 
+    def compute_RMSE(self , actual, predicted):
+        n = len(predicted)
+        rmse = np.linalg.norm(predicted - actual) / np.sqrt(n)
+        return rmse
+    
     def computeScoreInterpolators(self, df):
         from sklearn.linear_model import Ridge
         lExplanations = self.get_explanations()
@@ -117,6 +126,9 @@ class cAbstractScoreExplainer:
                 # print("PER_BIN_COEFFICIENTS" , b , bin_coefficients)
                 self.mScoreBinInterpolationCoefficients[b] = bin_coefficients
                 self.mScoreBinInterpolationIntercepts[b] = bin_regression.intercept_
+                pred = bin_regression.predict(bin_X)
+                # print("PER_BIN_RMSE" , b , self.compute_RMSE(pred, bin_y))
+                
         # print("SIGNIFICANT_BINS" , self.mScoreBinInterpolationCoefficients.keys())
         return df
 
@@ -126,12 +138,8 @@ class cAbstractScoreExplainer:
 
     def get_feature_explanation(self, feat , value):
         # value is a bin index (for the moment)
-        q = self.mFeatureQuantiles[feat][value]
-        if(value == 0):
-            output = "('" + feat + "' <= " + str(q) + ")"
-        else:
-            prev_q = self.mFeatureQuantiles[feat][value - 1]
-            output = "(" + str(prev_q) + " < '" + feat + "' <= " + str(q) + ")"
+        (feat_min, feat_max) = self.get_bin_limits(value, self.mFeatureQuantiles[feat])
+        output = "(" + str(feat_min) + " < '" + feat + "' <= " + str(feat_max) + ")"
             
         return output
 
@@ -164,13 +172,12 @@ class cAbstractScoreExplainer:
 
         for col in lFeatures:
             if(self.mSettings.is_categorical(col)):
-                if(self.mFeatureEncoding is None):
-                    self.mCategories[col] = self.computeQuantiles(df[col] , self.mSettings.mFeatureBins)       
                 df[col + '_bin'] = df[col]
                 pass
             else:                
                 if(self.mFeatureEncoding is None):
                     self.mFeatureQuantiles[col] = self.computeQuantiles(df[col] , self.mSettings.mFeatureBins)       
+                    print("FEATURE_QUANTILES" , col, self.mFeatureQuantiles[col])
                 df[col + '_bin'] = df[col].apply(lambda x : self.get_bin_index(x , self.mFeatureQuantiles[col]))
 
 
@@ -183,7 +190,7 @@ class cAbstractScoreExplainer:
             cols = [c + "_bin" for c in comb]
             df[explain] = df[cols].apply(lambda row: "_".join([str(row[c]) for c in cols]), axis=1)
             if(self.mFeatureEncoding is None):
-                lFeatureEncoding[explain] = df[['Score' , explain]].groupby([explain])['Score'].mean().to_dict()
+                lFeatureEncoding[explain] = df[['Score' , explain]].groupby([explain])['Score'].quantile(0.5).to_dict()
                 df[explain + '_encoded'] = df[explain].apply(lFeatureEncoding.get(explain).get)
             else:
                 df[explain + '_encoded'] = df[explain].apply(self.mFeatureEncoding.get(explain).get)    
@@ -193,6 +200,7 @@ class cAbstractScoreExplainer:
     def create_score_stats(self, X):
         lScore = pd.Series(self.get_score(X))
         self.mScoreQuantiles = self.computeQuantiles(lScore , self.mSettings.mScoreBins)
+        print("SCORE_QUANTILES" , self.mScoreQuantiles)
         lBinnedScore = lScore.apply(lambda x : self.get_bin_index(x , self.mScoreQuantiles))
         
         self.mFeatureQuantiles = {}
@@ -270,3 +278,87 @@ class cAbstractScoreExplainer:
             df_rc['detailed_' + name] = df_rc.apply(lambda_detail, axis=1)
         # print(df_rc.sample(6, random_state=1960))
         return df_rc
+
+    def get_explanation_values(self, explain):
+        comb = self.mExplanationData[explain]
+        lValues = []
+        for feat in comb:
+            feat_v = []
+            for q in self.mFeatureQuantiles[feat].keys():
+                feat_v.append(q)
+            # print("get_explanation_values" , feat , tuple(feat_v))
+            lValues = lValues + [feat_v]
+        import itertools
+        lprod = itertools.product(*lValues)
+        return lprod      
+
+    def get_bin_limits(self, bin_index, quantiles):
+        bin_min = quantiles.get(bin_index)
+        bin_max = quantiles.get(bin_index + 1 , np.inf)
+        return (bin_min, bin_max)
+
+    def get_local_score_card_from_score(self, score_value):
+        """
+        return a pandas dataframe giving the scorecard (union of all local scorecards)
+        """
+        lFeatures = self.mUsedFeatureNames
+        rows = []
+        NF = len(self.mExplanationData[self.mExplanations[0]])
+        lExplanations = self.get_explanations()
+        score_bin = self.get_bin_index(score_value, self.mScoreQuantiles)
+        (score_min , score_max) = self.get_bin_limits(score_bin, self.mScoreQuantiles)
+        for explain in lExplanations:
+            comb = self.mExplanationData[explain]
+            explain_key = "_".join(comb)
+            vs = self.get_explanation_values(explain)
+            for v in [k for k in vs]:
+                row = []
+                vi1 = []
+                for (i,feat) in enumerate(comb):
+                    row.append(feat)
+                    if(self.mSettings.is_categorical(feat)):
+                        (feat_min , feat_max) = (v[i] , v[i])
+                    else:
+                        (feat_min , feat_max) = self.get_bin_limits(v[i] , self.mFeatureQuantiles[feat])
+                    row.append(feat_min)
+                    row.append(feat_max)
+                    vi1 = vi1 + [str(v[i])]
+                coef = self.mScoreBinInterpolationCoefficients.get(score_bin).get(explain_key)
+                intercept = self.mScoreBinInterpolationIntercepts.get(score_bin)
+                vi2 = "_".join(vi1)
+                # print(explain_key, vi2)
+                # print(self.mFeatureEncoding)
+                explain_encoded = self.mFeatureEncoding.get(explain_key).get(vi2 , 0.0)    
+                lContrib = explain_encoded * coef
+                row.append(lContrib)
+                rows.append(row)
+        assert(len(rows) > 0)
+        sc_columns = [];
+        for i in range(NF):
+            sc_columns = sc_columns + ['feature_' + str(i+1) , 'feature_min_' + str(i+1) , 'feature_max_' + str(i+1)]
+        sc_columns = sc_columns + ['points']
+        score_card_df = pd.DataFrame(rows, columns=sc_columns)
+    
+        return score_card_df
+
+
+    def get_local_score_cards(self):
+        """
+        return a dict of pandas dataframe giving the scorecard for each score bin 
+        """
+        result = {}
+        for score_bin in self.mScoreQuantiles.keys():
+            (score_min , score_max) = self.get_bin_limits(score_bin, self.mScoreQuantiles)
+            score_card_df = self.get_local_score_card_from_score(score_max)
+            result [str([score_min, score_max])] = score_card_df
+        return result
+
+
+    def get_local_score_card(self, X):
+        lScore = self.get_score(X)
+        if(self.mSettings.mDebug):
+            print("GET_LOCAL_SCORE_CARD" , X , lScore)
+        df = self.get_local_score_card_from_score(lScore)
+        return df
+        
+
