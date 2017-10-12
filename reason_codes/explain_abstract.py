@@ -70,6 +70,30 @@ class cAbstractScoreExplainer:
         print("USED_FEATURES" , [lFeatures[col_idx] for col_idx in  used_indices])
         return used_indices
 
+    def getScoreQuantiles(self, col_data , bin_count):
+        # Add the possibility to customize the binning of score and features #8
+        # user defined ??
+        lCustomScoreQuantiles = self.mSettings.mCustomScoreQuantiles
+        quantiles = None
+        if(lCustomScoreQuantiles is not None):
+            quantiles = lCustomScoreQuantiles
+            print("CUSTOM_SCORE_QUANTILES" , quantiles)
+        else:
+            quantiles = self.computeQuantiles(col_data, bin_count)
+        return quantiles
+
+    def getFeatureQuantiles(self, col_name, col_data , bin_count):
+        # Add the possibility to customize the binning of score and features #8
+        # user defined ??
+        lCustomFeatureQuantiles = self.mSettings.mCustomFeatureQuantiles
+        quantiles = None
+        if(lCustomFeatureQuantiles is not None and lCustomFeatureQuantiles.get(col_name)):
+            quantiles = lCustomFeatureQuantiles.get(col_name)
+            print("CUSTOM_FEATURE_QUANTILES" , col_name, quantiles)
+        else:
+            quantiles = self.computeQuantiles(col_data, bin_count)
+        return quantiles
+
     def computeQuantiles(self, col , bin_count):
         lBinCount = bin_count
         lBinCount = lBinCount if(lBinCount < (col.shape[0] / 30)) else int(col.shape[0] / 30)
@@ -176,7 +200,7 @@ class cAbstractScoreExplainer:
                 pass
             else:                
                 if(self.mFeatureEncoding is None):
-                    self.mFeatureQuantiles[col] = self.computeQuantiles(df[col] , self.mSettings.mFeatureBins)       
+                    self.mFeatureQuantiles[col] = self.getFeatureQuantiles(col, df[col] , self.mSettings.mFeatureBins)       
                     print("FEATURE_QUANTILES" , col, self.mFeatureQuantiles[col])
                 df[col + '_bin'] = df[col].apply(lambda x : self.get_bin_index(x , self.mFeatureQuantiles[col]))
 
@@ -199,7 +223,7 @@ class cAbstractScoreExplainer:
 
     def create_score_stats(self, X):
         lScore = pd.Series(self.get_score(X))
-        self.mScoreQuantiles = self.computeQuantiles(lScore , self.mSettings.mScoreBins)
+        self.mScoreQuantiles = self.getScoreQuantiles(lScore , self.mSettings.mScoreBins)
         print("SCORE_QUANTILES" , self.mScoreQuantiles)
         lBinnedScore = lScore.apply(lambda x : self.get_bin_index(x , self.mScoreQuantiles))
         
