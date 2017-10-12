@@ -23,8 +23,6 @@ class cModelScoreExplainer:
     def fit(self, X):
         lFactory = expl.cScoreExplainerFactory()
         self.mImplementation = lFactory.build_Explainer(self.mModel , self.mSettings)
-        if(hasattr(self , "mFeatureNames")):
-            self.mImplementation.mFeatureNames = self.mFeatureNames
         return self.mImplementation.fit(X)
 
 
