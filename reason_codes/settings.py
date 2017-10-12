@@ -8,6 +8,8 @@ class cScoreExplainerConfig:
         self.mCategoricalFeatureNames = None
         self.mScoreBins = 5 # score binning
         self.mFeatureBins = 5 # feature binning
+        self.mCustomFeatureQuantiles = None
+        self.mCustomScoreQuantiles = None
         self.mMaxReasons = 5 # max number of explanations
         self.mExplanationOrder = 2 # max number of feature by explanation
         self.mClasses = None
