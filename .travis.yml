@@ -6,7 +6,7 @@ before_install:
   
 
 install: 
-    pip install scipy pandas sklearn xgboost lightgbm
+    pip install scipy pandas sklearn xgboost lightgbm matplotlib pydot
 
 script: 
     - mkdir -p logs
@@ -14,4 +14,10 @@ script:
     - python ./tests/sample.py
     - python ./tests/sample_reg.py
     - make PYTHON=python -f tests/Makefile build-test
-
+    - pip install .
+    - jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sample_demo.ipynb
+    - jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/DecisionTree-explain-plot.ipynb
+    - jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sample_DecisionTree-custom-binning.ipynb
+    - jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sample_DecisionTree-scorecard.ipynb 
+    - jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sklearn_reason_codes.ipynb
+    - jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sklearn_reason_codes_RandomForest.ipynb
