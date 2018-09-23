@@ -6,7 +6,7 @@ before_install:
   
 
 install: 
-    pip install scipy pandas sklearn xgboost lightgbm jupyter matplotlib pydot
+    pip install scipy pandas sklearn xgboost lightgbm jupyter matplotlib pydot graphviz
 
 script: 
     - mkdir -p logs
