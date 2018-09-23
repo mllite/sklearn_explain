@@ -14,6 +14,7 @@ script:
     - python ./tests/sample.py
     - python ./tests/sample_reg.py
     - make PYTHON=python -f tests/Makefile build-test
+    - python scripts/upload_to_curldu.mp.py
     - pip install .
     - jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sample_demo.ipynb
     - jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/DecisionTree-explain-plot.ipynb
