@@ -3,7 +3,7 @@ python:
     - 3.6
 
 before_install:
-  
+- sudo apt-get install -y graphviz  
 
 install: 
     pip install scipy pandas sklearn xgboost lightgbm jupyter matplotlib pydot graphviz
