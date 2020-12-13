@@ -45,6 +45,6 @@ sklearn_explain has been developed, tested and used on a python 3.5 version.
 
 The following commands install sklearn_explain and all its dependencies:
 
-	pip install scipy pandas sklearn
+	pip install scipy pandas sklearn # optional
 	pip install --upgrade git+git://github.com/antoinecarme/sklearn_explain.git
     
