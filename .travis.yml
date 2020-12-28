@@ -3,13 +3,13 @@ dist: xenial
 
 language: python
 python:
-    - 3.7
+    - 3.8
 
 before_install:
 - sudo apt-get install -y graphviz  
 
 install: 
-    pip install scipy pandas sklearn xgboost lightgbm jupyter matplotlib pydot graphviz
+    pip install scipy numpy pandas sklearn xgboost lightgbm jupyter matplotlib pydot graphviz
 
 script: 
     - mkdir -p logs
