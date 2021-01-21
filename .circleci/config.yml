@@ -6,6 +6,8 @@ orbs:
 jobs:
   build-and-test:
     executor: python/default
+    environment:
+        - PYTHONPATH:  $CIRCLE_WORKING_DIRECTORY
     steps:
       - checkout
       - run:
