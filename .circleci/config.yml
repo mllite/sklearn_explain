@@ -7,7 +7,7 @@ jobs:
   build-and-test:
     executor: python/default
     environment:
-        - PYTHONPATH:  $CIRCLE_WORKING_DIRECTORY
+        - PYTHONPATH: /home/circleci/project
     steps:
       - checkout
       - run:
