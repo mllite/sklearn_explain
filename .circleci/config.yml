@@ -13,6 +13,8 @@ jobs:
       - run:
           command: pwd
       - run:
+          command: export PYTHONPATH=/home/circleci/project
+      - run:
           command: uname -a  
       - run:
           command: cat /proc/cpuinfo  
