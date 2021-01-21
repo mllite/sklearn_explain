@@ -17,6 +17,8 @@ jobs:
       - run:
           command: env
       - run:
+          command: python -c "import sys; print(sys.path)" 
+      - run:
           command: ls $PYTHONPATH
       - run:
           command: uname -a  
