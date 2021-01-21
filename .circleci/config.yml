@@ -33,8 +33,6 @@ jobs:
       - run:
           command:  pip install scipy numpy pandas sklearn xgboost lightgbm jupyter matplotlib pydot graphviz
       - run:
-          command:  pip install .
-      - run:
           command:  mkdir -p logs
       - run:
           command:  python ./tests/display_version_info.py
@@ -46,6 +44,8 @@ jobs:
           command:  make PYTHON=python -f tests/Makefile build-test
       - run:
           command:  python scripts/upload_to_curldu.mp.py
+      - run:
+          command:  pip install .
       - run:
           command:  jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sample_demo.ipynb
       - run:
