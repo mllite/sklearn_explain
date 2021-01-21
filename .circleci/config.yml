@@ -1,0 +1,49 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@0.2.1
+
+jobs:
+  build-and-test:
+    executor: python/default
+    steps:
+      - checkout
+      - python/load-cache
+      - python/install-deps
+      - python/save-cache
+      - run:
+          command: sudo apt-get install -y graphviz  
+      - run:
+          command:  pip install scipy numpy pandas sklearn xgboost lightgbm jupyter matplotlib pydot graphviz
+      - run:
+          command:  mkdir -p logs
+      - run:
+          command:  python ./tests/display_version_info.py
+      - run:
+          command:  python ./tests/sample.py
+      - run:
+          command:  python ./tests/sample_reg.py
+      - run:
+          command:  make PYTHON=python -f tests/Makefile build-test
+      - run:
+          command:  python scripts/upload_to_curldu.mp.py
+      - run:
+          command:  pip install .
+      - run:
+          command:  jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sample_demo.ipynb
+      - run:
+          command:  jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/DecisionTree-explain-plot.ipynb
+      - run:
+          command:  jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sample_DecisionTree-custom-binning.ipynb
+      - run:
+          command:  jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sample_DecisionTree-scorecard.ipynb
+      - run:
+          command:  jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sklearn_reason_codes.ipynb
+      - run:
+          command:  jupyter nbconvert --to notebook --ExecutePreprocessor.timeout=None --execute doc/sklearn_reason_codes_RandomForest.ipynb
+
+
+workflows:
+  main:
+    jobs:
+      - build-and-test
